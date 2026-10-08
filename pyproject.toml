@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tiana-sdk"
+version = "0.1.0.dev0"
+description = "Native asyncio streams over Tiana v1 CONNECT"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+dependencies = ["h2>=4.4.1,<5", "hpack>=4.2,<5"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tiana_sdk"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "examples", "docs", "pyproject.toml", "README.md", "AGENTS.md", "LICENSE"]
