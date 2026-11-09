@@ -1,5 +1,9 @@
 # Validation
 
+This report describes a historical baseline, not a rerun of the full-hostname fix.
+The current local peer uses regenerated synthetic certificates; the frozen authority
+fixture is historical and is not used to validate SDK hostname input.
+
 Validated source commit: `df56610e0d885286df756d8fccadcfb0bf4f1f49`.
 Candidate: `tiana-sdk 0.1.0.dev0`, Python 3.11+, Apache-2.0.
 
@@ -17,8 +21,8 @@ server-first bytes; both half-close orders; pending-connect, TLS, read and
 blocked-write cancellation; independent tunnel cleanup; all 11 fixed Gateway
 codes and retry hints; malformed 200 headers with unknown-outcome metadata;
 RST/GOAWAY without replay; capacity/deadline failures; and dependency-log
-redaction. Exact authority and synthetic TLS fixtures come from the frozen
-Contracts and Rust revisions recorded in `common-contract.md`.
+redaction. At that baseline, authority and TLS fixtures came from the revisions recorded
+in `common-contract.md`.
 
 Command: `PYTHONPATH=src .venv/bin/python -W error::ResourceWarning -m unittest tests.test_connect -v`.
 ## Packaging and consumer

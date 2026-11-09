@@ -1,10 +1,9 @@
-"""Frozen v1 Endpoint, credential, and response rules."""
+"""Endpoint, credential, and CONNECT response rules."""
 
 import re
 
 from .errors import ConnectError, GatewayError
 
-ENDPOINT_SUFFIX = ".db.service.internal.tiana.com"
 ERROR_CODES = {
     "MALFORMED_CONNECT", "EARLY_TUNNEL_DATA", "ENDPOINT_MISMATCH",
     "AUTH_REQUIRED", "ACCESS_DENIED", "AUTHORIZATION_EXPIRED", "CALLER_DEADLINE",
@@ -20,13 +19,16 @@ def validate_protocol(value: str) -> None:
 
 
 def endpoint_host(value: str) -> str:
-    if not isinstance(value, str) or not value.isascii():
+    if not isinstance(value, str) or not value.isascii() or len(value) > 253:
         raise ConnectError("INVALID_ENDPOINT", "configuration")
     value = value.lower()
-    endpoint_id = value.removesuffix(ENDPOINT_SUFFIX)
-    if re.fullmatch(r"ep-[0-7][0-9a-hjkmnp-tv-z]{25}", endpoint_id) is None:
+    labels = value.split(".")
+    if (len(labels) < 2
+            or re.fullmatch(r"ep-[0-7][0-9a-hjkmnp-tv-z]{25}", labels[0]) is None
+            or any(re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label) is None
+                   for label in labels[1:])):
         raise ConnectError("INVALID_ENDPOINT", "configuration")
-    return endpoint_id + ENDPOINT_SUFFIX
+    return value
 
 
 class SecretToken:
