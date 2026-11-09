@@ -170,7 +170,7 @@ class Tunnel:
                 (b"tiana-tunnel-version", b"1"),
                 (b"tiana-database-protocol", self.protocol.encode()),
                 (b"tiana-request-id", self.request_id.encode()),
-                (b"user-agent", b"tiana-sdk-python/0.1.0.dev0"),
+                (b"user-agent", b"tiana-sdk-python/1.0.1"),
             ]
             if self._client._token is not None:
                 headers.append(NeverIndexedHeaderTuple(b"proxy-authorization", self._client._token._header()))

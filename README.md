@@ -1,8 +1,7 @@
 # Tiana Python SDK
 
 Native asynchronous byte streams over Tiana v1 TLS/HTTP2 CONNECT. Requires
-Python 3.11 or later; uses Python TLS, asyncio, and hyper-h2. Version
-`0.1.0.dev0` is an installable local development candidate.
+Python 3.11 or later; uses Python TLS, asyncio, and hyper-h2.
 
 ```sh
 python -m pip install .
