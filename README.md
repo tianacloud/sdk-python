@@ -26,9 +26,12 @@ async def main():
 asyncio.run(main())
 ```
 
-`endpoint` accepts the canonical Endpoint ID or hostname. The hostname suffix
-is `.db.service.internal.tiana.com`; SNI and CONNECT authority always use that
-identity and logical port 443. TLS requires version 1.3, hostname verification,
+`endpoint` requires the complete Endpoint DNS hostname supplied by your service,
+for example `ep-00000000000000000000000000.example.test` (a placeholder).
+Previously accepted bare Endpoint IDs are no longer accepted; replace them with
+the full hostname. No suffix is appended. SNI and CONNECT authority use the
+normalized hostname and logical port 443; DNS, routing and a valid certificate
+for that hostname are required. TLS requires version 1.3, hostname verification,
 and ALPN `h2`. `ca_file` accepts PEM certificates, `ca_pem` accepts PEM text.
 System roots are enabled by default; set `use_system_roots=False` to trust
 only the supplied roots. `gateway_address=(host, port)` overrides the physical
@@ -76,7 +79,8 @@ The stdin/stdout example sends opaque inner bytes and half-closes after input:
 
 ```sh
 export TIANA_PROTOCOL=your-registered-profile
-export TIANA_ENDPOINT=ep-01j5c9m7q2v8x4k6n3r0t1w2yz.db.service.internal.tiana.com
+# Replace this placeholder with the complete service-provided Endpoint hostname.
+export TIANA_ENDPOINT=ep-00000000000000000000000000.example.test
 export TIANA_CA_FILE=/path/to/gateway-ca.pem
 python examples/stream.py < request.bin > response.bin
 ```
@@ -95,9 +99,8 @@ PYTHONPATH=src python -m unittest discover -v
 python tests/gateway_smoke.py /path/to/fixed-gateway-fixture
 ```
 
-The direct tests use TLS/H2 peers and fixed synthetic certificates from Rust
-`3b8d64fd692e3b2edaebf4233ec25bf15bcc53d6`; authority assets are byte copies
-from Contracts `59b3b4654511eb01b6d0c350fff8b7e22bbb0268`. Integration smoke
+The direct tests use TLS/H2 peers and locally generated synthetic certificates.
+Historical authority assets remain unchanged but do not define SDK input. Integration smoke
 uses real Gateway source `4e026bcd34864e9c6aca4932ccad5e8c17f0496f` with
 synthetic Control, Runtime, clock, and Agent. It exercises two 2 MiB sessions,
 both auth modes, refusal metadata, half-close tails, and cancellation isolation.

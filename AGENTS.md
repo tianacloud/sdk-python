@@ -19,8 +19,9 @@ Profile validation is one bounded operation before a connection, with no payload
 hot-path change. No storage, durability or server wire-format change.
 
 Examples and external Gateway smoke scripts require TIANA_PROTOCOL from their
-caller; local unit peers use opaque application identifiers. Keep frozen authority
-and synthetic certificate provenance intact. Existing historical Gateway validation
+caller; local unit peers use opaque application identifiers. Keep historical frozen
+authority unchanged; SDK hostname input uses the caller-supplied full hostname.
+Current synthetic certificate provenance is recorded in tests/fixtures/README.md. Existing historical Gateway validation
 records are not evidence of a rerun against a currently deployed environment.
 Run all native TLS/H2 tests, generic identifier injection/length/forwarding tests,
 example subprocess checks, build both wheel/sdist and verify installed wheels.

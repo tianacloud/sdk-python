@@ -1,6 +1,5 @@
 import asyncio
 import io
-import json
 import logging
 import ssl
 import unittest
@@ -9,7 +8,7 @@ from h2.settings import SettingCodes
 from hpack import NeverIndexedHeaderTuple
 
 from tiana_sdk import Client, ConnectError, GatewayError, TunnelError
-from tiana_sdk._protocol import ENDPOINT_SUFFIX, SecretToken, response_metadata
+from tiana_sdk._protocol import SecretToken, response_metadata
 from .peer import ENDPOINT, FIXTURES, TOKEN, Peer
 
 
@@ -19,18 +18,31 @@ def client(peer, **options):
 
 
 class ConfigurationTests(unittest.TestCase):
-    def test_frozen_authority(self):
-        authority = json.loads((FIXTURES / "authority.json").read_text())
-        self.assertEqual(ENDPOINT_SUFFIX, authority["endpoint_suffix"])
-        self.assertEqual(443, authority["default_port"])
-        self.assertEqual(Client(ENDPOINT.upper()).endpoint, ENDPOINT)
-        self.assertEqual(Client(ENDPOINT.removesuffix(ENDPOINT_SUFFIX)).endpoint, ENDPOINT)
+    def test_complete_endpoint_hosts(self):
+        prefix = ENDPOINT.split(".")[0]
+        hosts = [ENDPOINT, prefix + ".db.example.test", prefix + ".region.stage.example.test",
+                 prefix + "." + "a" * 63,
+                 prefix + "." + ".".join(["a" * 63, "b" * 63, "c" * 63, "d" * 31])]
+        self.assertEqual(len(hosts[-1]), 253)
+        for host in hosts:
+            with self.subTest(host=host):
+                c = Client(host.upper())
+                self.assertEqual(c.endpoint, host)
+                self.assertEqual(c._address, (host, 443))
+                c.close()
 
     def test_invalid_endpoint_token_and_trust(self):
-        for value in ["https://" + ENDPOINT, "localhost", ENDPOINT + ":80", ENDPOINT + ".",
-                      ENDPOINT.replace("ep-0", "ep-8"), ENDPOINT.replace(".db.service.internal.tiana.com", ".db.tiana.dev")]:
-            with self.subTest(endpoint=value), self.assertRaises(ConnectError):
+        prefix = ENDPOINT.split(".")[0]
+        for value in [prefix, "https://" + ENDPOINT, "localhost", ENDPOINT + ":443",
+                      ENDPOINT + ".", ENDPOINT + "/path", ENDPOINT + "?q=1",
+                      ENDPOINT + "#fragment", "user@" + ENDPOINT, " " + ENDPOINT,
+                      prefix + "..test", prefix + ".-bad.test", prefix + ".bad-.test",
+                      prefix + ".bad_name.test", prefix + ".é.test", prefix + "." + "a" * 64,
+                      prefix + "." + ".".join(["a" * 63, "b" * 63, "c" * 63, "d" * 32]),
+                      ENDPOINT.replace("ep-0", "ep-8"), None, b"host"]:
+            with self.subTest(endpoint=value), self.assertRaises(ConnectError) as caught:
                 Client(value)
+            self.assertEqual((caught.exception.code, caught.exception.phase), ("INVALID_ENDPOINT", "configuration"))
         for token in ["", TOKEN + "\r\n", " leading", "trailing ", "x\t", "x\0", "x\x7f", "é", "x" * 4097]:
             with self.assertRaises(ConnectError) as caught:
                 Client(ENDPOINT, token=token)
@@ -78,7 +90,9 @@ class ConnectTests(unittest.IsolatedAsyncioTestCase):
         await self.limit.__aexit__(None, None, None)
 
     async def test_tls_wire_server_first_and_local_half_close(self):
-        async with Peer() as peer, client(peer, token=TOKEN) as c:
+        async with Peer() as peer, Client(ENDPOINT.upper(), token=TOKEN,
+                gateway_address=peer.address, ca_file=FIXTURES / "gateway.pem",
+                use_system_roots=False) as c:
             async with await c.connect("echo") as tunnel:
                 self.assertEqual(await tunnel.readexactly(8), b"greeting")
                 await tunnel.write(b"\0hello\xff")

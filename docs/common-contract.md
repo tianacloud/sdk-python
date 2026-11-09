@@ -2,12 +2,12 @@
 
 Contracts `59b3b4654511eb01b6d0c350fff8b7e22bbb0268` is the v1 authority.
 Rust `3b8d64fd692e3b2edaebf4233ec25bf15bcc53d6` supplies reference behavior
-and synthetic TLS fixtures. Gateway integration uses source
+for historical reference. Gateway integration uses source
 `4e026bcd34864e9c6aca4932ccad5e8c17f0496f`.
 
-Each SDK takes an Endpoint, optional existing InstanceToken, and TLS trust
-roots. Endpoint IDs follow `ep-[0-7][0-9a-hjkmnp-tv-z]{25}`. Canonical hosts
-append `.db.service.internal.tiana.com`. DNS case is normalized. The SNI host
+This SDK takes a complete Endpoint DNS hostname, optional existing InstanceToken,
+and TLS trust roots. The first label follows `ep-[0-7][0-9a-hjkmnp-tv-z]{25}`;
+bare IDs are rejected and no suffix is appended. DNS case is normalized. The SNI host
 equals the CONNECT authority host; logical port is 443. A physical dial
 override changes only the network destination, preserving verification.
 

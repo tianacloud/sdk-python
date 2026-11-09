@@ -14,7 +14,7 @@ from h2.settings import SettingCodes, Settings
 from tiana_sdk._logging import private_headers
 
 FIXTURES = Path(__file__).parent / "fixtures"
-ENDPOINT = "ep-01j5c9m7q2v8x4k6n3r0t1w2yz.db.service.internal.tiana.com"
+ENDPOINT = "ep-00000000000000000000000000.example.test"
 TOKEN = "tia_" + "A" * 43
 
 
